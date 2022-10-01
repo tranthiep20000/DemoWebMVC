@@ -1,14 +1,31 @@
 using DemoMVC.Data;
+using DemoMVC.Models;
+using DemoMVC.Repositories;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using System.IO.Compression;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(
     builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
+builder.Services.AddScoped<IBaseRepository<Category>, CategoryRepository>();
+builder.Services.AddScoped<CategoryRepository>();
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+    {
+        options.Level = CompressionLevel.Optimal;
+    })
+    .AddResponseCompression(options =>
+    {
+        options.Providers.Add<GzipCompressionProvider>();
+        options.EnableForHttps = true;
+    });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

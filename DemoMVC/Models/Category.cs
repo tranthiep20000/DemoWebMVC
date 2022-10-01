@@ -14,17 +14,20 @@ namespace DemoMVC.Models
         /// Id
         /// </summary>
         public int Id { get; set; }
+
         [Required]
         /// <summary>
         /// Name
         /// </summary>
         public string Name { get; set; }
+
         [DisplayName("Display Order")]
         [Range(1, 100, ErrorMessage = "Display Order must be between 1 and 100 only.")]
         /// <summary>
         /// DisplayOrder
         /// </summary>
         public int DisplayOrder { get; set; }
+
         /// <summary>
         /// CreatedDateTime
         /// </summary>

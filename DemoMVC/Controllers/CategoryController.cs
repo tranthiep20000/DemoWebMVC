@@ -1,5 +1,6 @@
 ﻿using DemoMVC.Data;
 using DemoMVC.Models;
+using DemoMVC.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DemoMVC.Controllers
@@ -11,24 +12,29 @@ namespace DemoMVC.Controllers
     public class CategoryController : Controller
     {
         private readonly ApplicationDbContext _applicationDbContext;
+        private readonly IBaseRepository<Category> _categoryRepository;
+        private readonly CategoryRepository _categoryRepositoryclass;
 
-        public CategoryController(ApplicationDbContext applicationDbContext)
+        public CategoryController(ApplicationDbContext applicationDbContext, IBaseRepository<Category> categoryRepository, CategoryRepository categoryRepositoryclass)
         {
             _applicationDbContext = applicationDbContext;
+            _categoryRepository = categoryRepository;
+            _categoryRepositoryclass = categoryRepositoryclass;
         }
-
 
         public IActionResult Index(string? valueSearch)
         {
             IEnumerable<Category> listCategory;
             if (string.IsNullOrEmpty(valueSearch))
             {
-                listCategory = _applicationDbContext.Categories;
+                //listCategory = _applicationDbContext.Categories;
+                listCategory = _categoryRepository.GetAll();
             }
             else
             {
-                listCategory = _applicationDbContext.Categories.Where(category => category.Name.ToLower().Trim().Contains(valueSearch.ToLower().Trim())
-                                                 || category.DisplayOrder.ToString().ToLower().Trim().Contains(valueSearch.ToLower().Trim()));
+                //listCategory = _categoryRepository.Categories.Where(category => category.Name.ToLower().Trim().Contains(valueSearch.ToLower().Trim())
+                //                                 || category.DisplayOrder.ToString().ToLower().Trim().Contains(valueSearch.ToLower().Trim()));
+                listCategory = _categoryRepositoryclass.GetBySearchValue(valueSearch);
             }
             return View(listCategory);
         }
@@ -44,14 +50,15 @@ namespace DemoMVC.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Category category)
         {
-            if(category.Name == category.DisplayOrder.ToString())
+            if (category.Name == category.DisplayOrder.ToString())
             {
                 ModelState.AddModelError("name", "The Display Order cannot exactly match the Name.");
-            }    
-            if(ModelState.IsValid)
+            }
+            if (ModelState.IsValid)
             {
-                _applicationDbContext.Categories.Add(category);
-                _applicationDbContext.SaveChanges();
+                //_applicationDbContext.Categories.Add(category);
+                //_applicationDbContext.SaveChanges();
+                _categoryRepository.Create(category);
                 TempData["success"] = "Category created successfully";
                 return RedirectToAction("Index");
             }
@@ -61,12 +68,13 @@ namespace DemoMVC.Controllers
         //GET
         public IActionResult Edit(int? id)
         {
-            if(id == null || id == 0)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var category = _applicationDbContext.Categories.Find(id);
+            //var category = _applicationDbContext.Categories.Find(id);
+            var category = _categoryRepository.GetById((int)id);
 
             if (category == null)
             {
@@ -87,8 +95,9 @@ namespace DemoMVC.Controllers
             }
             if (ModelState.IsValid)
             {
-                _applicationDbContext.Categories.Update(category);
-                _applicationDbContext.SaveChanges();
+                //_applicationDbContext.Categories.Update(category);
+                //_applicationDbContext.SaveChanges();
+                _categoryRepository.Update(category);
                 TempData["success"] = "Category updated successfully";
                 return RedirectToAction("Index");
             }
@@ -98,12 +107,13 @@ namespace DemoMVC.Controllers
         //GET
         public IActionResult Delete(int? id)
         {
-            if (id == null || id == 0)
+            if (id == null)
             {
                 return NotFound();
             }
 
-            var category = _applicationDbContext.Categories.Find(id);
+            //var category = _applicationDbContext.Categories.Find(id);
+            var category = _categoryRepository.GetById((int)id);
 
             if (category == null)
             {
@@ -118,15 +128,17 @@ namespace DemoMVC.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteCategory(int? id)
         {
-            var category = _applicationDbContext.Categories.Find(id);
+            //var category = _applicationDbContext.Categories.Find(id);
+            var category = _categoryRepository.GetById((int)id);
 
-            if(category == null)
+            if (category == null)
             {
                 return NotFound();
-            } 
-            
-            _applicationDbContext.Categories.Remove(category);
-            _applicationDbContext.SaveChanges();
+            }
+
+            //_applicationDbContext.Categories.Remove(category);
+            //_applicationDbContext.SaveChanges();
+            _categoryRepository.Delete((int)id);
             TempData["success"] = "Category deleted successfully";
             return RedirectToAction("Index");
         }
